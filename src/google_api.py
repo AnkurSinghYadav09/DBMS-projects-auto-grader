@@ -47,10 +47,29 @@ class GoogleAPIHandler:
                 scopes=Config.SCOPES
             )
         
-        self.sheets_service = build("sheets", "v4", credentials=self.creds)
-        self.docs_service = build("docs", "v1", credentials=self.creds)
-        self.drive_service = build("drive", "v3", credentials=self.creds)
-        logger.info("Google API services initialized")
+        # Lazy initialization of services
+        self._sheets_service = None
+        self._docs_service = None
+        self._drive_service = None
+        logger.info("Google API handler initialized")
+    
+    @property
+    def sheets_service(self):
+        if self._sheets_service is None:
+            self._sheets_service = build("sheets", "v4", credentials=self.creds, cache_discovery=False)
+        return self._sheets_service
+    
+    @property
+    def docs_service(self):
+        if self._docs_service is None:
+            self._docs_service = build("docs", "v1", credentials=self.creds, cache_discovery=False)
+        return self._docs_service
+    
+    @property
+    def drive_service(self):
+        if self._drive_service is None:
+            self._drive_service = build("drive", "v3", credentials=self.creds, cache_discovery=False)
+        return self._drive_service
     
     @staticmethod
     def extract_doc_id(url: str) -> Optional[str]:
