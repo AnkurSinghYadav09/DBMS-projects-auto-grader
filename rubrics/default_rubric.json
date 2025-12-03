@@ -1,0 +1,45 @@
+{
+  "total_points": 100,
+  "criteria": [
+    {
+      "name": "Problem Statement",
+      "points": 10,
+      "description": "Clear identification and articulation of the problem or research question"
+    },
+    {
+      "name": "Objectives",
+      "points": 10,
+      "description": "Well-defined, measurable, and achievable objectives"
+    },
+    {
+      "name": "Methodology",
+      "points": 20,
+      "description": "Detailed description of methods, procedures, and approach"
+    },
+    {
+      "name": "Technical Depth",
+      "points": 20,
+      "description": "Demonstration of technical knowledge, skills, and understanding"
+    },
+    {
+      "name": "Results & Analysis",
+      "points": 15,
+      "description": "Clear presentation and thorough analysis of results"
+    },
+    {
+      "name": "Conclusions",
+      "points": 10,
+      "description": "Valid conclusions supported by results and analysis"
+    },
+    {
+      "name": "Formatting & Writing",
+      "points": 10,
+      "description": "Professional formatting, proper grammar, and clear writing"
+    },
+    {
+      "name": "Originality & Critical Thinking",
+      "points": 5,
+      "description": "Evidence of original thought and critical analysis"
+    }
+  ]
+}

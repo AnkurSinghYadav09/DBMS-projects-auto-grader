@@ -1,0 +1,26 @@
+# Credentials
+credentials/
+*.json
+!rubrics/*.json
+
+# Environment
+.env
+venv/
+.venv/
+env/
+*.pyc
+__pycache__/
+
+# Logs
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
