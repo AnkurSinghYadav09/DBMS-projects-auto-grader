@@ -237,8 +237,7 @@ with st.expander("ℹ️ System Information"):
 st.markdown("---")
 st.markdown(
     "<div style='text-align: center; color: #666;'>"
-    "🔥 AAG - Auto Assignment Grader | Built with ❤️ using Streamlit & Google Gemini AI | "
-    f"Last Updated: {datetime.now().strftime('%Y-%m-%d')}"
+    "🔥 AAG - Ankur Assignment Grader | Built with ❤️ using Streamlit"
     "</div>",
     unsafe_allow_html=True
 )
