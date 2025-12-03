@@ -1,4 +1,5 @@
 import re
+import json
 import logging
 from typing import Optional, Dict, List
 from googleapiclient.discovery import build
@@ -8,12 +9,44 @@ from .config import Config
 
 logger = logging.getLogger(__name__)
 
+# Try to import streamlit for cloud deployment
+try:
+    import streamlit as st
+    HAS_STREAMLIT = True
+except ImportError:
+    HAS_STREAMLIT = False
+
 class GoogleAPIHandler:
     def __init__(self):
-        self.creds = service_account.Credentials.from_service_account_file(
-            Config.SERVICE_ACCOUNT_FILE, 
-            scopes=Config.SCOPES
-        )
+        # Get credentials based on environment
+        if HAS_STREAMLIT:
+            try:
+                # Try to get service account from Streamlit secrets
+                if "gcp_service_account" in st.secrets:
+                    service_account_info = dict(st.secrets["gcp_service_account"])
+                    self.creds = service_account.Credentials.from_service_account_info(
+                        service_account_info,
+                        scopes=Config.SCOPES
+                    )
+                else:
+                    # Fall back to file
+                    self.creds = service_account.Credentials.from_service_account_file(
+                        Config.SERVICE_ACCOUNT_FILE,
+                        scopes=Config.SCOPES
+                    )
+            except (AttributeError, FileNotFoundError, KeyError):
+                # Fall back to file
+                self.creds = service_account.Credentials.from_service_account_file(
+                    Config.SERVICE_ACCOUNT_FILE,
+                    scopes=Config.SCOPES
+                )
+        else:
+            # Local environment - use file
+            self.creds = service_account.Credentials.from_service_account_file(
+                Config.SERVICE_ACCOUNT_FILE,
+                scopes=Config.SCOPES
+            )
+        
         self.sheets_service = build("sheets", "v4", credentials=self.creds)
         self.docs_service = build("docs", "v1", credentials=self.creds)
         self.drive_service = build("drive", "v3", credentials=self.creds)

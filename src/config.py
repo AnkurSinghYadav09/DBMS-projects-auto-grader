@@ -5,6 +5,22 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+# Try to import streamlit for cloud deployment
+try:
+    import streamlit as st
+    HAS_STREAMLIT = True
+except ImportError:
+    HAS_STREAMLIT = False
+
+def get_config_value(key: str, default: str = None) -> str:
+    """Get config value from Streamlit secrets or environment variables"""
+    if HAS_STREAMLIT:
+        try:
+            return st.secrets.get(key, os.getenv(key, default))
+        except (AttributeError, FileNotFoundError):
+            return os.getenv(key, default)
+    return os.getenv(key, default)
+
 class Config:
     # Base paths
     BASE_DIR = Path(__file__).parent.parent
@@ -18,32 +34,32 @@ class Config:
     RUBRICS_DIR.mkdir(exist_ok=True)
     
     # AI Provider Configuration
-    AI_PROVIDER = os.getenv("AI_PROVIDER", "gemini").lower()
+    AI_PROVIDER = get_config_value("AI_PROVIDER", "gemini").lower()
     
     # OpenAI Configuration
-    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-    OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4-turbo-preview")
+    OPENAI_API_KEY = get_config_value("OPENAI_API_KEY")
+    OPENAI_MODEL = get_config_value("OPENAI_MODEL", "gpt-4-turbo-preview")
     
     # Gemini Configuration
-    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-    GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+    GEMINI_API_KEY = get_config_value("GEMINI_API_KEY")
+    GEMINI_MODEL = get_config_value("GEMINI_MODEL", "gemini-1.5-flash")
     
     # Google Configuration
-    SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
-    SHEET_NAME = os.getenv("SHEET_NAME", "Sheet1")
-    SERVICE_ACCOUNT_FILE = os.getenv("SERVICE_ACCOUNT_FILE", "credentials/service_account.json")
+    SPREADSHEET_ID = get_config_value("SPREADSHEET_ID")
+    SHEET_NAME = get_config_value("SHEET_NAME", "Sheet1")
+    SERVICE_ACCOUNT_FILE = get_config_value("SERVICE_ACCOUNT_FILE", "credentials/service_account.json")
     
     # Column Configuration
-    DOC_LINK_COLUMN = os.getenv("DOC_LINK_COLUMN", "A")
-    STUDENT_NAME_COLUMN = os.getenv("STUDENT_NAME_COLUMN", "B")
-    SCORE_COLUMN = os.getenv("SCORE_COLUMN", "C")
-    FEEDBACK_COLUMN = os.getenv("FEEDBACK_COLUMN", "D")
+    DOC_LINK_COLUMN = get_config_value("DOC_LINK_COLUMN", "A")
+    STUDENT_NAME_COLUMN = get_config_value("STUDENT_NAME_COLUMN", "B")
+    SCORE_COLUMN = get_config_value("SCORE_COLUMN", "C")
+    FEEDBACK_COLUMN = get_config_value("FEEDBACK_COLUMN", "D")
     
     # Processing Configuration
-    MAX_WORKERS = int(os.getenv("MAX_WORKERS", "5"))
-    RETRY_ATTEMPTS = int(os.getenv("RETRY_ATTEMPTS", "3"))
-    BATCH_SIZE = int(os.getenv("BATCH_SIZE", "10"))
-    INCLUDE_PLAGIARISM_CHECK = os.getenv("INCLUDE_PLAGIARISM_CHECK", "True").lower() == "true"
+    MAX_WORKERS = int(get_config_value("MAX_WORKERS", "5"))
+    RETRY_ATTEMPTS = int(get_config_value("RETRY_ATTEMPTS", "3"))
+    BATCH_SIZE = int(get_config_value("BATCH_SIZE", "10"))
+    INCLUDE_PLAGIARISM_CHECK = get_config_value("INCLUDE_PLAGIARISM_CHECK", "True").lower() == "true"
     
     # Google API Scopes
     SCOPES = [
