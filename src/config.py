@@ -85,8 +85,23 @@ class Config:
         
         if not cls.SPREADSHEET_ID:
             errors.append("SPREADSHEET_ID not set")
-        if not Path(cls.SERVICE_ACCOUNT_FILE).exists():
-            errors.append(f"Service account file not found: {cls.SERVICE_ACCOUNT_FILE}")
+        
+        # Check for service account - either in Streamlit secrets or as file
+        if HAS_STREAMLIT:
+            try:
+                # Check if gcp_service_account exists in secrets
+                has_secrets = "gcp_service_account" in st.secrets
+                has_file = Path(cls.SERVICE_ACCOUNT_FILE).exists()
+                if not has_secrets and not has_file:
+                    errors.append(f"Service account not found: credentials/service_account.json")
+            except (AttributeError, FileNotFoundError):
+                # Secrets not available, check file only
+                if not Path(cls.SERVICE_ACCOUNT_FILE).exists():
+                    errors.append(f"Service account file not found: {cls.SERVICE_ACCOUNT_FILE}")
+        else:
+            # Local environment - check file only
+            if not Path(cls.SERVICE_ACCOUNT_FILE).exists():
+                errors.append(f"Service account file not found: {cls.SERVICE_ACCOUNT_FILE}")
         
         if errors:
             raise ValueError(f"Configuration errors:\n" + "\n".join(f"  - {e}" for e in errors))
