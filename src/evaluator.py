@@ -11,34 +11,44 @@ class DocumentEvaluator:
     def __init__(self):
         self.ai_provider = Config.AI_PROVIDER
         
-        if self.ai_provider == "gemini":
-            # Gemini API
-            import google.generativeai as genai
-            genai.configure(api_key=Config.GEMINI_API_KEY)
-            # Don't add models/ prefix - use model name directly
-            self.client = genai.GenerativeModel(Config.GEMINI_MODEL)
-            self.use_json_mode = False
-        elif self.ai_provider == "deepseek":
-            # DeepSeek API
-            self.client = OpenAI(
-                api_key=Config.OPENAI_API_KEY,
-                base_url="https://api.deepseek.com"
-            )
-            self.use_json_mode = False
-        elif Config.OPENAI_API_KEY and Config.OPENAI_API_KEY.startswith('pplx-'):
-            # Perplexity API
-            self.client = OpenAI(
-                api_key=Config.OPENAI_API_KEY,
-                base_url="https://api.perplexity.ai"
-            )
-            self.use_json_mode = False
-        else:
-            # OpenAI API
-            self.client = OpenAI(api_key=Config.OPENAI_API_KEY)
-            self.use_json_mode = True
-        
-        self.rubric = self.load_rubric()
-        logger.info("Document evaluator initialized")
+        try:
+            if self.ai_provider == "gemini":
+                # Gemini API
+                import google.generativeai as genai
+                if not Config.GEMINI_API_KEY:
+                    raise ValueError("GEMINI_API_KEY is not configured")
+                genai.configure(api_key=Config.GEMINI_API_KEY)
+                # Don't add models/ prefix - use model name directly
+                self.client = genai.GenerativeModel(Config.GEMINI_MODEL)
+                self.use_json_mode = False
+            elif self.ai_provider == "deepseek":
+                # DeepSeek API
+                if not Config.OPENAI_API_KEY:
+                    raise ValueError("OPENAI_API_KEY is not configured for DeepSeek")
+                self.client = OpenAI(
+                    api_key=Config.OPENAI_API_KEY,
+                    base_url="https://api.deepseek.com"
+                )
+                self.use_json_mode = False
+            elif Config.OPENAI_API_KEY and Config.OPENAI_API_KEY.startswith('pplx-'):
+                # Perplexity API
+                self.client = OpenAI(
+                    api_key=Config.OPENAI_API_KEY,
+                    base_url="https://api.perplexity.ai"
+                )
+                self.use_json_mode = False
+            else:
+                # OpenAI API
+                if not Config.OPENAI_API_KEY:
+                    raise ValueError("OPENAI_API_KEY is not configured")
+                self.client = OpenAI(api_key=Config.OPENAI_API_KEY)
+                self.use_json_mode = True
+            
+            self.rubric = self.load_rubric()
+            logger.info("Document evaluator initialized")
+        except Exception as e:
+            logger.error(f"Failed to initialize evaluator: {e}")
+            raise ValueError(f"AI Provider initialization failed: {str(e)}. Please check your API keys.")
     
     def load_rubric(self) -> str:
         """Load evaluation rubric from JSON or use default"""
@@ -392,8 +402,18 @@ OUTPUT (pure JSON, no markdown):
             logger.error(f"Response content: {content[:500]}")
             return self.get_error_result("JSON parsing error")
         except Exception as e:
-            logger.error(f"Evaluation failed: {e}")
-            return self.get_error_result(str(e))
+            error_msg = str(e)
+            logger.error(f"Evaluation failed: {error_msg}")
+            
+            # Check for common API errors
+            if "403" in error_msg or "leaked" in error_msg.lower():
+                return self.get_error_result("API key is invalid or has been revoked. Please generate a new key.")
+            elif "401" in error_msg or "unauthorized" in error_msg.lower():
+                return self.get_error_result("API authentication failed. Check your API key.")
+            elif "quota" in error_msg.lower() or "429" in error_msg:
+                return self.get_error_result("API quota exceeded. Please try again later.")
+            else:
+                return self.get_error_result(f"Evaluation error: {error_msg}")
     
     @staticmethod
     def get_error_result(error_msg: str) -> Dict:
