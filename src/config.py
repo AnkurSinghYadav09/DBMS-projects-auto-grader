@@ -28,10 +28,14 @@ class Config:
     LOGS_DIR = BASE_DIR / "logs"
     RUBRICS_DIR = BASE_DIR / "rubrics"
     
-    # Ensure directories exist
-    LOGS_DIR.mkdir(exist_ok=True)
-    CREDENTIALS_DIR.mkdir(exist_ok=True)
-    RUBRICS_DIR.mkdir(exist_ok=True)
+    # Ensure directories exist (only in local environment)
+    try:
+        LOGS_DIR.mkdir(exist_ok=True)
+        CREDENTIALS_DIR.mkdir(exist_ok=True)
+        RUBRICS_DIR.mkdir(exist_ok=True)
+    except (OSError, PermissionError):
+        # In cloud environments, directories may not be writable
+        pass
     
     # AI Provider Configuration
     AI_PROVIDER = get_config_value("AI_PROVIDER", "gemini").lower()

@@ -1,26 +1,37 @@
 import streamlit as st
 import sys
 import time
-import pandas as pd
 from pathlib import Path
 from datetime import datetime
-import plotly.express as px
-import plotly.graph_objects as go
+import traceback
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from src.config import Config
-from src.sheet_processor import SheetProcessor
-from src.google_api import GoogleAPIHandler
-
-# Page configuration
+# Page configuration MUST come before any other Streamlit commands
 st.set_page_config(
     page_title="AAG 🔥",
     page_icon="🔥",
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# Wrap everything in try-except for better error reporting
+try:
+    # Now import other modules and libraries
+    import pandas as pd
+    import plotly.express as px
+    import plotly.graph_objects as go
+
+    from src.config import Config
+    from src.sheet_processor import SheetProcessor
+    from src.google_api import GoogleAPIHandler
+    
+except Exception as e:
+    st.error(f"❌ **Initialization Error**")
+    st.error(f"Error: {str(e)}")
+    st.code(traceback.format_exc())
+    st.stop()
 
 # Custom CSS
 st.markdown("""
