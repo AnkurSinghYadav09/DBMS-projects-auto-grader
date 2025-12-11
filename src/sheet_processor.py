@@ -1,4 +1,5 @@
 import logging
+import time
 from typing import List, Tuple
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from .google_api import GoogleAPIHandler
@@ -26,25 +27,45 @@ class SheetProcessor:
             
             logger.info(f"Found {len(rows)} documents to evaluate")
             
-            # Process documents
+            # Process documents with rate limiting
             results = []
-            with ThreadPoolExecutor(max_workers=Config.MAX_WORKERS) as executor:
-                futures = {
-                    executor.submit(
-                        self.process_single_document,
-                        i + start_row,
-                        row
-                    ): i for i, row in enumerate(rows)
-                }
-                
-                for future in as_completed(futures):
-                    idx = futures[future]
+            
+            if Config.MAX_WORKERS == 1:
+                # Sequential processing with rate limiting for free tier
+                logger.info(f"Processing {len(rows)} documents sequentially with {Config.REQUEST_DELAY}s delay")
+                for i, row in enumerate(rows):
                     try:
-                        result = future.result()
+                        result = self.process_single_document(i + start_row, row)
                         results.append(result)
-                        logger.info(f"Completed {idx + 1}/{len(rows)}")
+                        logger.info(f"Completed {i + 1}/{len(rows)}")
+                        
+                        # Add delay between requests to respect rate limits
+                        if i < len(rows) - 1:  # Don't delay after last document
+                            time.sleep(Config.REQUEST_DELAY)
                     except Exception as e:
-                        logger.error(f"Failed to process row {idx + start_row}: {e}")
+                        logger.error(f"Failed to process row {i + start_row}: {e}")
+                        results.append((False, str(e)))
+            else:
+                # Parallel processing (for paid tiers or other providers)
+                logger.info(f"Processing {len(rows)} documents in parallel with {Config.MAX_WORKERS} workers")
+                with ThreadPoolExecutor(max_workers=Config.MAX_WORKERS) as executor:
+                    futures = {
+                        executor.submit(
+                            self.process_single_document,
+                            i + start_row,
+                            row
+                        ): i for i, row in enumerate(rows)
+                    }
+                    
+                    for future in as_completed(futures):
+                        idx = futures[future]
+                        try:
+                            result = future.result()
+                            results.append(result)
+                            logger.info(f"Completed {idx + 1}/{len(rows)}")
+                        except Exception as e:
+                            logger.error(f"Failed to process row {idx + start_row}: {e}")
+                            results.append((False, str(e)))
             
             # Summary
             successful = sum(1 for r in results if r[0])

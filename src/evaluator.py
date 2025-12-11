@@ -18,9 +18,11 @@ class DocumentEvaluator:
                 if not Config.GEMINI_API_KEY:
                     raise ValueError("GEMINI_API_KEY is not configured")
                 genai.configure(api_key=Config.GEMINI_API_KEY)
-                # Don't add models/ prefix - use model name directly
-                self.client = genai.GenerativeModel(Config.GEMINI_MODEL)
+                # Use correct Gemini model name (no "models/" prefix)
+                model_name = Config.GEMINI_MODEL.replace("models/", "")
+                self.client = genai.GenerativeModel(model_name)
                 self.use_json_mode = False
+                logger.info(f"Initialized Gemini with model: {model_name}")
             elif self.ai_provider == "deepseek":
                 # DeepSeek API
                 if not Config.OPENAI_API_KEY:
@@ -383,8 +385,8 @@ OUTPUT (pure JSON, no markdown):
                 return self.get_error_result("API key is invalid or has been revoked. Please generate a new key.")
             elif "401" in error_msg or "unauthorized" in error_msg.lower():
                 return self.get_error_result("API authentication failed. Check your API key.")
-            elif "quota" in error_msg.lower() or "429" in error_msg:
-                return self.get_error_result("API quota exceeded. Please try again later.")
+            elif "429" in error_msg or "quota" in error_msg.lower() or "rate" in error_msg.lower():
+                return self.get_error_result("API rate limit exceeded. Gemini free tier allows only 5 requests per minute. Please wait and retry.")
             else:
                 return self.get_error_result(f"Evaluation error: {error_msg}")
     

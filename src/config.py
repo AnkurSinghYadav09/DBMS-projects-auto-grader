@@ -60,10 +60,13 @@ class Config:
     FEEDBACK_COLUMN = get_config_value("FEEDBACK_COLUMN", "D")
     
     # Processing Configuration
-    MAX_WORKERS = int(get_config_value("MAX_WORKERS", "5"))
+    MAX_WORKERS = int(get_config_value("MAX_WORKERS", "1"))  # Reduced from 5 to 1 for rate limits
     RETRY_ATTEMPTS = int(get_config_value("RETRY_ATTEMPTS", "3"))
     BATCH_SIZE = int(get_config_value("BATCH_SIZE", "10"))
     INCLUDE_PLAGIARISM_CHECK = get_config_value("INCLUDE_PLAGIARISM_CHECK", "True").lower() == "true"
+    
+    # Rate limiting for Gemini free tier (5 requests per minute)
+    REQUEST_DELAY = float(get_config_value("REQUEST_DELAY", "12"))  # 12 seconds between requests = 5/minute
     
     # Google API Scopes
     SCOPES = [
