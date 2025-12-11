@@ -118,14 +118,31 @@ with col2:
             # Validate configuration
             with status_placeholder:
                 st.info("🔍 Validating configuration...")
-            Config.validate()
+            
+            try:
+                Config.validate()
+                with log_area:
+                    st.success("✅ Configuration validated")
+            except Exception as config_err:
+                st.error(f"❌ Configuration Error: {str(config_err)}")
+                st.stop()
+            
             time.sleep(0.5)
             
             # Initialize processor
             with status_placeholder:
                 st.info("🔧 Initializing evaluation system...")
             progress_bar.progress(10)
-            processor = SheetProcessor()
+            
+            try:
+                processor = SheetProcessor()
+                with log_area:
+                    st.success("✅ Sheet processor initialized")
+            except Exception as proc_err:
+                st.error(f"❌ Processor Error: {str(proc_err)}")
+                st.code(traceback.format_exc())
+                st.stop()
+            
             time.sleep(0.5)
             
             # Get document count
@@ -133,23 +150,44 @@ with col2:
                 st.info("📊 Reading Google Sheet...")
             progress_bar.progress(20)
             
-            google_api = GoogleAPIHandler()
-            range_name = f"{Config.DOC_LINK_COLUMN}2:{Config.STUDENT_NAME_COLUMN}"
-            rows = google_api.read_sheet_rows(range_name)
-            doc_count = len(rows)
+            try:
+                google_api = GoogleAPIHandler()
+                range_name = f"{Config.DOC_LINK_COLUMN}2:{Config.STUDENT_NAME_COLUMN}"
+                rows = google_api.read_sheet_rows(range_name)
+                doc_count = len(rows)
+                
+                with log_area:
+                    st.success(f"✅ Found {doc_count} documents in sheet")
+            except Exception as sheet_err:
+                st.error(f"❌ Sheet Read Error: {str(sheet_err)}")
+                st.code(traceback.format_exc())
+                st.stop()
             
             with status_placeholder:
                 st.info(f"📚 Found **{doc_count}** documents to evaluate")
-            progress_bar.progress(30)
-            time.sleep(1)
-            
-            # Start evaluation
-            with status_placeholder:
-                st.warning(f"⚡ Evaluating {doc_count} documents... (This may take a few minutes)")
-            progress_bar.progress(40)
-            
             # Run evaluation (this is the actual processing)
             start_time = time.time()
+            
+            try:
+                processor.process_all_documents()
+                with log_area:
+                    st.success("✅ All documents processed")
+            except Exception as eval_err:
+                st.error(f"❌ Evaluation Error: {str(eval_err)}")
+                st.code(traceback.format_exc())
+                st.warning("⚠️ Some documents may have been processed. Check the Google Sheet for partial results.")
+                st.stop()
+            
+            end_time = time.time()
+            
+            elapsed_time = round(end_time - start_time, 2)
+            avg_time = round(elapsed_time / doc_count, 2) if doc_count > 0 else 0
+            
+            progress_bar.progress(100)
+            
+            # Success message
+            with status_placeholder:
+                st.success(f"✅ Evaluation Complete!")
             processor.process_all_documents()
             end_time = time.time()
             
