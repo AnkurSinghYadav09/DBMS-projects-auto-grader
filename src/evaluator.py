@@ -76,146 +76,101 @@ class DocumentEvaluator:
     
     @staticmethod
     def get_default_rubric() -> str:
-        """Default evaluation rubric"""
+        """Default evaluation rubric - 4 tabs × 25 marks = 100 total"""
         return """Evaluate the following document according to these criteria:
 
+RUBRIC STRUCTURE: 4 Tabs, Each worth 25 marks = 100 Total
 
+============================================================
+TAB 1: CREATE AND INSERT SCRIPTS (25 marks)
+============================================================
 
-SQL Implementation (25 points)
-1. Table Creation Scripts (8 points)
-   - 8: All 8 tables properly defined with correct data types, PK/FK, NOT NULL, CHECK, logical structure.
-   - 6: Mostly correct, minor constraint or datatype issues.
-   - 4: Significant issues with constraints or relationships.
-   - 2: Basic structure only, major issues.
-   - 0: Missing or severely flawed tables.
+Evaluation Criteria:
+- Scripts must be WORKING and EXECUTABLE
+- Check if CREATE TABLE statements run without errors
+- Check if INSERT statements populate data successfully
+- Verify table structures are logical and complete
+- Verify data is realistic and demonstrates relationships
 
-2. Insert Scripts & Sample Data (5 points)
-   - 5: Realistic, diverse data demonstrating relationships.
-   - 4: Good data, minor logic issues.
-   - 3: Basic data, weak relationships.
-   - 1: Minimal or unrealistic data.
-   - 0: No or inappropriate data.
+Scoring:
+- 25 marks: All CREATE and INSERT scripts work perfectly. Tables properly defined with correct data types, constraints (PK, FK, NOT NULL, CHECK, UNIQUE). Realistic, diverse sample data demonstrating all relationships.
+- 20 marks: Scripts mostly work with minor issues (1-2 syntax errors or missing constraints). Good data coverage.
+- 15 marks: Scripts work but have several issues. Some constraints missing or incorrect. Data is basic but functional.
+- 10 marks: Scripts have significant problems. Multiple errors, poor constraint usage, minimal data.
+- 5 marks: Scripts barely work. Major structural issues, very limited data.
+- 0 marks: Scripts don't work or are missing.
 
-3. Index Creation Strategy (7 points)
-   - 7: Strategic indexes on frequently queried columns; proper composite indexes.
-   - 5: Good attempt, some optimization missed.
-   - 3: Basic indexes with poor placement.
-   - 1: Few or ineffective indexes.
-   - 0: No useful indexes.
+============================================================
+TAB 2: ER MODEL (25 marks)
+============================================================
 
-4. SQL Code Quality (5 points)
-   - 5: Clean, well-formatted, consistent naming, proper SQL usage.
-   - 4: Minor formatting issues.
-   - 3: Functional but inconsistent.
-   - 1: Poorly organized.
-   - 0: Unreadable or non-functional.
+Evaluation Criteria:
+- Clear ER diagram must be present (not just text description)
+- Foreign keys must be correct and viable
+- Check for normalization issues (partial/transitive dependencies)
+- **DEDUCT 5 marks for EACH partial or transitive dependency found**
+- ER model should be normalized to 3NF
 
-------------------------------------------------------------
+Scoring:
+- Start with 25 marks
+- Check if clear ER diagram exists (if only text description: deduct 10 marks)
+- Verify Foreign Keys are correct and viable (if incorrect FKs: deduct 5-10 marks)
+- **CRITICAL: Check for normalization violations:**
+  - **Partial Dependency**: Non-prime attribute depends on part of composite key → DEDUCT 5 marks per occurrence
+  - **Transitive Dependency**: Non-prime attribute depends on another non-prime attribute → DEDUCT 5 marks per occurrence
+  - If fully normalized to 3NF with correct FKs and clear diagram: FULL 25 marks
 
-ER Model & Database Design (20 points)
-1. ER Diagram Completeness (8 points)
-   - 8: All entities, attributes, relationships clearly shown, correct notation.
-   - 6: Mostly complete, minor notation/clarity issues.
-   - 4: Basic, missing key elements.
-   - 2: Incomplete/confusing.
-   - 0: Missing/incorrect.
+Examples of violations:
+- Partial: In table with composite key (StudentID, CourseID), if StudentName depends only on StudentID
+- Transitive: If StudentID → DepartmentID → DepartmentName (DepartmentName transitively depends on StudentID)
 
-2. Relationship & Cardinality Accuracy (7 points)
-   - 7: All relationships correct with accurate cardinality.
-   - 5: Mostly correct with 1–2 errors.
-   - 3: Several mistakes.
-   - 1: Major misunderstanding.
-   - 0: Missing/wrong.
+Final Score = 25 - (number_of_violations × 5)
 
-3. Normalization (to 3NF) (5 points)
-   - 5: Properly normalized to 3NF; no redundancy.
-   - 4: Mostly normalized, minor issues.
-   - 3: Only up to 2NF.
-   - 1: Only 1NF or major violations.
-   - 0: Not normalized.
+============================================================
+TAB 3: INDEXES (25 marks)
+============================================================
 
-------------------------------------------------------------
+Evaluation Criteria:
+- Indexes must be correctly placed according to the queries provided
+- Check if indexes support WHERE clauses, JOIN conditions, ORDER BY, and frequently queried columns
+- Verify index placement makes sense for query optimization
 
-Query Design & Optimization (25 points)
-1. Query Functionality & Correctness (10 points)
-   - 10: All 5 queries correct and meaningful.
-   - 8: Minor issues or 1 problematic query.
-   - 6: 2+ queries flawed.
-   - 3: Several incorrect.
-   - 0: Missing/broken.
+Scoring:
+- 25 marks: All indexes are correctly placed according to queries. Perfect alignment with WHERE/JOIN/ORDER BY usage. Demonstrates clear understanding of query optimization.
+- 20 marks: Most indexes correct, 1-2 minor misalignments or missed opportunities.
+- 15 marks: Good attempt, but several indexes could be better placed or some important indexes missing.
+- 10 marks: Basic indexing present but weak alignment with actual query patterns.
+- 5 marks: Very few indexes or mostly incorrect placement.
+- 0 marks: No indexes or completely wrong placement.
 
-2. Query Complexity & Relevance (8 points)
-   - 8: Uses joins, subqueries, aggregation; solves real problems.
-   - 6: Good complexity, some simple queries.
-   - 4: Mostly basic SELECTs.
-   - 2: Very simple queries.
-   - 0: No meaningful queries.
+============================================================
+TAB 4: DESCRIPTION/DOCUMENTATION (25 marks)
+============================================================
 
-3. Index–Query Alignment (7 points)
-   - 7: Indexes directly support WHERE/JOIN/ORDER BY usage.
-   - 5: Good but missed opportunities.
-   - 3: Weak alignment.
-   - 1: Little connection.
-   - 0: No optimization strategy.
+Evaluation Criteria:
+- Description must be appropriate and complete
+- Should explain the application scenario, design decisions, normalization process
+- Should justify entity/attribute choices and optimization strategies
 
-------------------------------------------------------------
+Scoring:
+- 25 marks: Excellent, comprehensive description. Clear application scenario, detailed justification for all design decisions, normalization steps explained, optimization strategy documented.
+- 20 marks: Good description with most elements present. Minor gaps in justification or explanation.
+- 15 marks: Adequate description. Covers basics but lacks depth in some areas.
+- 10 marks: Basic description. Missing significant justifications or explanations.
+- 5 marks: Minimal description. Very incomplete.
+- 0 marks: No description or completely inadequate.
 
-Design Documentation & Justification (20 points)
-1. Application Scenario Understanding (5 points)
-   - 5: Clear scenario, realistic roles, solid requirements.
-   - 4: Good scenario, some missing details.
-   - 3: Basic description.
-   - 1: Minimal understanding.
-   - 0: No or unrealistic scenario.
+============================================================
+TOTAL: 100 marks (Sum of all 4 tabs)
+============================================================
 
-2. Entity & Attribute Justification (5 points)
-   - 5: Detailed justification with logical rationale.
-   - 4: Mostly justified.
-   - 3: Basic, incomplete reasoning.
-   - 1: Very little justification.
-   - 0: None.
-
-3. Normalization Explanation (5 points)
-   - 5: Clear step-by-step explanation with dependency examples.
-   - 4: Good explanation, lacks examples.
-   - 3: Basic but weak explanation.
-   - 1: Minimal or incorrect.
-   - 0: Missing.
-
-4. Optimization Strategy Explanation (5 points)
-   - 5: Clear explanation per index linked to query patterns.
-   - 4: Good but some missing connections.
-   - 3: Basic explanation.
-   - 1: Minimal reasoning.
-   - 0: None.
-
-------------------------------------------------------------
-
-Originality & Authenticity (10 points)
-1. Human Authenticity Markers (5 points)
-   - 5: Natural inconsistencies, personal voice, realistic corrections.
-   - 4: Mostly human but polished.
-   - 2: Suspiciously perfect.
-   - 0: Strong AI indicators.
-
-2. Creative Problem-Solving (5 points)
-   - 5: Unique, justified design choices.
-   - 4: Some creativity.
-   - 2: Generic tutorial-like work.
-   - 0: No originality.
-
-------------------------------------------------------------
-
-Total possible points: 100
-
-Additional considerations:
-  "Scoring Rules:
-- Sum the rubric categories exactly.
-- Do NOT change scoring logic across runs.
-- Follow the rubric strictly."
-- Check for potential plagiarism indicators (unusual style changes, citations missing)
-- Assess overall coherence and logical flow
-- Note any exceptional strengths or critical weaknesses
+CRITICAL SCORING RULES:
+1. Each tab is independent and worth exactly 25 marks
+2. Tab 2 (ER Model) uses DEDUCTION method: Start at 25, subtract 5 for each normalization violation
+3. Be DETERMINISTIC: Same document = Same score every time
+4. Do NOT invent problems that don't exist
+5. Base scores on ACTUAL evidence in the document
+6. Follow this rubric EXACTLY - do not deviate
 """
     
     @retry(stop=stop_after_attempt(Config.RETRY_ATTEMPTS), 
@@ -223,118 +178,136 @@ Additional considerations:
     def evaluate(self, document_text: str, student_name: Optional[str] = None) -> Dict:
         """Evaluate document using AI API (OpenAI/Gemini/DeepSeek/Perplexity)"""
         try:
-            system_prompt = """You are a DETERMINISTIC, PRECISE academic grading system. You MUST be FACTUALLY ACCURATE and produce identical scores for identical documents.
+            system_prompt = """You are a DETERMINISTIC, PRECISE academic grading system following a strict 4-tab rubric. You MUST be FACTUALLY ACCURATE and produce identical scores for identical documents.
 
 CRITICAL ACCURACY RULES:
 1. ONLY mention features that ACTUALLY EXIST in the document
-2. DO NOT claim formatting errors that aren't present (e.g., "NOTNULL" or "UNIQUENOTNULL")
-3. DO NOT exaggerate query complexity - be honest about simple vs. complex queries
+2. DO NOT claim formatting errors that aren't present
+3. DO NOT exaggerate functionality - be honest about what works
 4. DO NOT claim ER diagrams exist if only text descriptions are present
-5. Verify ACTUAL constraint usage (NOT NULL, CHECK, UNIQUE) - don't assume they're everywhere
-6. Be SPECIFIC with evidence - cite actual table names, query numbers, constraint examples
+5. Count normalization violations EXACTLY - deduct 5 marks per violation
+6. Be SPECIFIC with evidence - cite actual examples from the document
 
-EVIDENCE-BASED SCORING METHOD:
-Count and verify actual features present in the document:
+RUBRIC: 4 TABS × 25 MARKS = 100 TOTAL
 
-1. sql_implementation (0-25):
-   COUNT EXACTLY:
-   - Number of CREATE TABLE statements with proper structure
-   - Actual PRIMARY KEY and FOREIGN KEY declarations present
-   - Actual NOT NULL constraints (count them, don't assume)
-   - Actual CHECK constraints or ENUM types present
-   - UNIQUE constraints present
-   - Realistic INSERT data (check if data makes sense)
-   - Index definitions (CREATE INDEX statements)
-   
-   SCORING:
-   - 25: 8+ tables, ALL constraints properly used (PK, FK, NOT NULL on critical fields, CHECK/ENUM present), realistic diverse data, 5+ strategic indexes, clean formatting
-   - 19: 6-7 tables, good constraint usage, decent data quality, 3-4 indexes, minor issues only
-   - 13: 4-5 tables, basic constraints (PK/FK only), simple data, 1-2 indexes, several issues
-   - 6: 2-3 tables, minimal constraints, poor data quality
-   - 0: 0-1 tables or fundamentally broken SQL
+============================================================
+TAB 1: CREATE AND INSERT SCRIPTS (25 marks)
+============================================================
+EVALUATE:
+- Do CREATE TABLE scripts work without errors?
+- Do INSERT statements successfully populate data?
+- Are table structures logical with proper constraints (PK, FK, NOT NULL, CHECK, UNIQUE)?
+- Is sample data realistic and demonstrates relationships?
 
-2. er_model (0-20):
-   VERIFY ACTUAL PRESENCE:
-   - Is there an ACTUAL ER diagram image/visual (not just text description)?
-   - Count entities actually shown in diagram
-   - Count relationships with cardinality notation
-   - Check normalization evidence (separate junction tables, no transitive dependencies)
-   
-   SCORING:
-   - 20: Complete ER diagram VISIBLE with all entities, all relationships with cardinality, full 3NF normalization proven
-   - 15: Diagram present, most entities/relationships shown, 2NF or approaching 3NF
-   - 10: Basic diagram OR detailed text description only (no visual), 1NF level
-   - 5: Incomplete text description, missing key relationships, normalization unclear
-   - 0: No ER model or description provided
+SCORING SCALE:
+- 25: Scripts work perfectly, all constraints present, excellent realistic data
+- 20: Scripts mostly work, minor issues (1-2 errors), good data coverage
+- 15: Scripts work with several issues, some constraints missing, basic data
+- 10: Scripts have significant problems, poor constraint usage, minimal data
+- 5: Scripts barely work, major issues, very limited data
+- 0: Scripts don't work or are missing
 
-3. query_design (0-25):
-   ANALYZE ACTUAL QUERY COMPLEXITY (be honest):
-   - Count total queries provided
-   - SIMPLE query = basic SELECT with 1-2 table joins, simple WHERE
-   - MODERATE query = 2-3 table joins, GROUP BY with aggregate functions, ORDER BY
-   - COMPLEX query = nested subqueries (IN with SELECT), multiple joins (4+ tables), HAVING clauses, window functions, CTEs
-   
-   SCORING:
-   - 25: 5+ queries, at least 3 are COMPLEX (nested subqueries/4+ joins/window functions), all syntactically correct, well-optimized
-   - 19: 5 queries, 2 COMPLEX, rest MODERATE, all functional
-   - 13: 3-4 queries, mostly MODERATE (2-3 joins, GROUP BY), maybe 1 simple, all work
-   - 6: 2-3 queries, mostly SIMPLE (basic SELECT/single joins), or queries with errors
-   - 0: 0-1 queries or broken syntax
+============================================================
+TAB 2: ER MODEL (25 marks) - USES DEDUCTION METHOD
+============================================================
+START WITH 25 MARKS, THEN DEDUCT:
 
-4. documentation (0-20):
-   CHECK ACTUAL SECTIONS PRESENT:
-   - Design rationale: explanation of why entities/attributes were chosen
-   - Normalization explanation: step-by-step 1NF→2NF→3NF with dependency examples
-   - Optimization strategy: explanation of why each index was created
-   
-   SCORING:
-   - 20: All 3 sections present with detailed explanations (2+ paragraphs each), clear reasoning, specific examples
-   - 15: All 3 sections present, good explanations (1 paragraph each), some examples
-   - 10: 2 sections present OR all 3 but brief/superficial
-   - 5: Only 1 section present or very minimal documentation
-   - 0: No documentation
+STEP 1: Check if ER diagram exists
+- If ONLY text description (no visual diagram): DEDUCT 10 marks
+- If clear visual ER diagram present: no deduction
 
-5. originality (0-10):
-   DETECT ACTUAL AUTHENTICITY:
-   - Human markers: minor typos, informal language, personal reasoning, realistic mistakes
-   - AI markers: perfect grammar throughout, generic explanations, tutorial-like structure, overly polished
-   
-   SCORING:
-   - 10: Clear human work (natural imperfections, personal style, unique choices)
-   - 8: Mostly human, slightly polished
-   - 5: Generic but acceptable, could be tutorial-based
-   - 2: Strong AI indicators (too perfect, generic reasoning)
-   - 0: Obviously copied or AI-generated
+STEP 2: Check Foreign Keys
+- If Foreign Keys are incorrect or not viable: DEDUCT 5-10 marks
+- If all Foreign Keys are correct and viable: no deduction
 
-GRADING ALGORITHM:
-1. READ the entire document carefully
-2. COUNT actual occurrences of each feature (tables, constraints, queries, sections)
-3. CLASSIFY query complexity honestly (simple/moderate/complex)
-4. MATCH your counts to the score bands above
-5. SELECT the ONE score from allowed values: [25,19,13,6,0], [20,15,10,5,0], etc.
-6. SUM all 5 scores for total_score
-7. WRITE EVIDENCE-BASED feedback citing specific examples from document
+STEP 3: Check for Normalization Violations (CRITICAL)
+**DEDUCT 5 MARKS FOR EACH VIOLATION FOUND:**
+
+A) PARTIAL DEPENDENCY (violates 2NF):
+   - Occurs when non-prime attribute depends on PART of a composite key
+   - Example: Table(StudentID, CourseID, StudentName) - StudentName depends only on StudentID, not full key
+   - Count each occurrence and deduct 5 marks
+
+B) TRANSITIVE DEPENDENCY (violates 3NF):
+   - Occurs when non-prime attribute depends on another non-prime attribute
+   - Example: Table(StudentID, DepartmentID, DepartmentName) - DepartmentName transitively depends on StudentID through DepartmentID
+   - Count each occurrence and deduct 5 marks
+
+FINAL SCORE = 25 - (ER_diagram_deduction) - (FK_deduction) - (5 × number_of_normalization_violations)
+
+Examples:
+- Perfect: Visual ER diagram, correct FKs, fully normalized to 3NF = 25 marks
+- Good: Visual ER diagram, correct FKs, 1 transitive dependency = 25 - 5 = 20 marks
+- Fair: Text only, correct FKs, 2 violations = 25 - 10 - 10 = 5 marks
+
+============================================================
+TAB 3: INDEXES (25 marks)
+============================================================
+EVALUATE:
+- Are indexes correctly placed according to the queries provided?
+- Do indexes support WHERE clauses, JOIN conditions, ORDER BY?
+- Does index placement make sense for query optimization?
+
+SCORING SCALE:
+- 25: Perfect index placement, all align with queries, excellent optimization understanding
+- 20: Most indexes correct, 1-2 minor misalignments or missed opportunities
+- 15: Good attempt, several indexes could be better placed or some missing
+- 10: Basic indexing present but weak alignment with query patterns
+- 5: Very few indexes or mostly incorrect placement
+- 0: No indexes or completely wrong placement
+
+============================================================
+TAB 4: DESCRIPTION/DOCUMENTATION (25 marks)
+============================================================
+EVALUATE:
+- Is description appropriate and complete?
+- Does it explain application scenario, design decisions, normalization?
+- Are entity/attribute choices and optimization strategies justified?
+
+SCORING SCALE:
+- 25: Excellent comprehensive description, clear scenario, detailed justifications, normalization steps, optimization strategy
+- 20: Good description, most elements present, minor gaps
+- 15: Adequate description, covers basics but lacks depth
+- 10: Basic description, missing significant justifications
+- 5: Minimal description, very incomplete
+- 0: No description or completely inadequate
+
+============================================================
+DETERMINISTIC GRADING ALGORITHM:
+============================================================
+1. READ document thoroughly
+2. For TAB 1: Check if scripts work, count constraints, evaluate data quality → assign 0/5/10/15/20/25
+3. For TAB 2: Start at 25, count each normalization violation, check ER diagram and FKs → deduct accordingly
+4. For TAB 3: Count indexes, check query alignment → assign 0/5/10/15/20/25
+5. For TAB 4: Assess documentation completeness → assign 0/5/10/15/20/25
+6. TOTAL = tab1 + tab2 + tab3 + tab4 (must equal 0-100)
+7. Write EVIDENCE-BASED feedback citing specific examples
 
 FEEDBACK ACCURACY RULES:
-- In "strengths": cite actual table names, query numbers, specific features found
-- In "weaknesses": be specific about what's missing (e.g., "No CHECK constraints found" not "minor issues")
-- In "recommendations": give concrete actions (e.g., "Add indexes on frequently joined columns like user_id" not "consider optimization")
-- NEVER mention formatting errors that don't exist
-- NEVER exaggerate complexity
+- Cite actual table names, query numbers, specific features
+- Be specific about violations found (e.g., "Table X has transitive dependency: Y→Z→W")
+- Give concrete recommendations with examples
+- NEVER invent problems that don't exist
 
 OUTPUT (pure JSON, no markdown):
 {
-  "total_score": <sum of 5 categories>,
+  "total_score": <sum of 4 tabs, 0-100>,
   "breakdown": {
-    "sql_implementation": <25|19|13|6|0>,
-    "er_model": <20|15|10|5|0>,
-    "query_design": <25|19|13|6|0>,
-    "documentation": <20|15|10|5|0>,
-    "originality": <10|8|5|2|0>
+    "tab1_create_insert": <0|5|10|15|20|25>,
+    "tab2_er_model": <0-25, calculated using deduction method>,
+    "tab3_indexes": <0|5|10|15|20|25>,
+    "tab4_description": <0|5|10|15|20|25>
   },
-  "strengths": "<specific features with examples: 'Table X has proper FK to Y', 'Query 3 uses complex 4-table join'>",
-  "weaknesses": "<specific gaps: 'No CHECK constraints found', 'Queries 1-2 are simple SELECTs only', 'ER diagram not visible, only text description'>",
-  "recommendations": "<concrete actions: 'Add CHECK constraint to limit age 18-100', 'Create composite index on (user_id, date)', 'Include visual ER diagram'>",
+  "tab2_deductions": {
+    "missing_visual_diagram": <0 or 10>,
+    "incorrect_foreign_keys": <0, 5, or 10>,
+    "partial_dependencies_count": <number>,
+    "transitive_dependencies_count": <number>,
+    "total_deducted": <sum of all deductions>
+  },
+  "strengths": "<specific features with examples from each tab>",
+  "weaknesses": "<specific gaps or violations found in each tab>",
+  "recommendations": "<concrete actions for improvement>",
   "plagiarism_flags": "None detected"
 }
 """
